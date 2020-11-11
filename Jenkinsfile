@@ -1,34 +1,14 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3-alpine'
-            args '-v /root/.m2:/root/.m2'
-        }
+  agent any
+  parameters {
+    string(name: 'STATEMENT', defaultValue: 'hello; ls /', description: 'What should I say?')
+  }
+  stages {
+    stage('Example') {
+      steps {
+        /* CORRECT */
+        sh('echo ${STATEMENT}')
+      }
     }
-    options {
-        skipStagesAfterUnstable()
-    }
-    stages {
-        stage('Build') {
-            steps {
-                print "${env.WORKSPACE}"
-                sh 'mvn -B -DskipTests clean package'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
-            }
-        }
-        stage('Deliver') { 
-            steps {
-                sh './jenkins/scripts/deliver.sh' 
-            }
-        }
-    }
+  }
 }
