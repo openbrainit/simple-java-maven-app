@@ -11,6 +11,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                print "${env.WORKSPACE}"
                 sh 'mvn -B -DskipTests clean package'
             }
         }
