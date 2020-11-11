@@ -1,40 +1,32 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'maven:3-alpine'
+            args '-v /root/.m2:/root/.m2'
+        }
+    }
+    options {
+        skipStagesAfterUnstable()
+    }
     stages {
-        stage('Non-Parallel Stage') {
+        stage('Build') {
             steps {
-                echo 'This stage will be executed first.'
+                sh 'mvn -B -DskipTests clean package'
             }
         }
-        stage('Parallel Stage') {
-            parallel {
-                stage('Branch A') {
-         
-                    steps {
-                        echo "On Branch A"
-                    }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
                 }
-                stage('Branch B') {
-                
-                    steps {
-                        echo "On Branch B"
-                    }
-                }
-                stage('Branch C') {
-                
-                    stages {
-                        stage('Nested 1') {
-                            steps {
-                                echo "In stage Nested 1 within Branch C"
-                            }
-                        }
-                        stage('Nested 2') {
-                            steps {
-                                echo "In stage Nested 2 within Branch C"
-                            }
-                        }
-                    }
-                }
+            }
+        }
+        stage('Deliver') { 
+            steps {
+                sh './jenkins/scripts/deliver.sh' 
             }
         }
     }
